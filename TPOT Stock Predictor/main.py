@@ -9,6 +9,7 @@ from tpot import TPOTRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, r2_score, make_scorer, mean_absolute_error
 from sklearn.impute import KNNImputer
+from sklearn.model_selection import TimeSeriesSplit
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -157,13 +158,15 @@ def train_predict_model(df, stock , test_size=0.2, prediction_window=5):
 
     print('Intalizing TPOT Regressor')
     tpot_model = TPOTRegressor(
-        generations=7, 
-        population_size=75, 
+        generations=10, 
+        population_size=50, 
         verbosity=2,
         random_state=42, 
         scoring=make_scorer(custom_stock_scorer),
         n_jobs=-2, 
         max_time_mins=10,
+        cv=TimeSeriesSplit(n_splits=5),
+        early_stop=3
     )
     
     tpot_model.fit(X_train_scaled, y_train)
@@ -251,6 +254,7 @@ def display_results(model_results):
         # Display the DataFrame with limited columns for readability
         print("\nTest Dates, Actual Prices and Predicted Prices:")
         print(comparison_df.head(10).to_string(index=False))
+        print("\n")
 
 # Loading data
 df = pd.read_excel("merged_sentiment_6months.xlsx")
